@@ -342,14 +342,16 @@ public class JavaScriptLifter: Lifter {
                         }
                     case .let:
                         // Small optimization: turn `let x = undefined;` into just `let x;`
+                        let keyword = (version == .es5) ? "var" : "let"
                         let initialValue = input(0).text
                         if initialValue == "undefined" {
-                            w.emit("let \(op.variableName);")
+                            w.emit("\(keyword) \(op.variableName);")
                         } else {
-                            w.emit("let \(op.variableName) = \(initialValue);")
+                            w.emit("\(keyword) \(op.variableName) = \(initialValue);")
                         }
                     case .const:
-                        w.emit("const \(op.variableName) = \(input(0));")
+                        let keyword = (version == .es5) ? "var" : "const"
+                        w.emit("\(keyword) \(op.variableName) = \(input(0));")
                     }
                 }
                 w.declare(instr.output, as: op.variableName)
@@ -727,7 +729,7 @@ public class JavaScriptLifter: Lifter {
 
             case .getProperty(let op):
                 let obj = input(0)
-                let accessOperator = op.isGuarded ? "?." : "."
+                let accessOperator = (op.isGuarded && version != .es5) ? "?." : "."
                 let expr = MemberExpression.new() + obj + accessOperator + op.propertyName
                 w.assign(expr, to: instr.output)
 
@@ -748,7 +750,7 @@ public class JavaScriptLifter: Lifter {
             case .deleteProperty(let op):
                 // For aesthetic reasons, we don't want to inline the lhs of a property deletion, so force it to be stored in a variable.
                 let obj = inputAsIdentifier(0)
-                let accessOperator = op.isGuarded ? "?." : "."
+                let accessOperator = (op.isGuarded && version != .es5) ? "?." : "."
                 let target = MemberExpression.new() + obj + accessOperator + op.propertyName
                 let expr = UnaryExpression.new() + "delete " + target
                 w.assign(expr, to: instr.output)
@@ -761,7 +763,7 @@ public class JavaScriptLifter: Lifter {
 
             case .getElement(let op):
                 let obj = input(0)
-                let accessOperator = op.isGuarded ? "?.[" : "["
+                let accessOperator = (op.isGuarded && version != .es5) ? "?.[" : "["
                 let expr = MemberExpression.new() + obj + accessOperator + op.index + "]"
                 w.assign(expr, to: instr.output)
 
@@ -782,7 +784,7 @@ public class JavaScriptLifter: Lifter {
             case .deleteElement(let op):
                 // For aesthetic reasons, we don't want to inline the lhs of an element deletion, so force it to be stored in a variable.
                 let obj = inputAsIdentifier(0)
-                let accessOperator = op.isGuarded ? "?.[" : "["
+                let accessOperator = (op.isGuarded && version != .es5) ? "?.[" : "["
                 let target = MemberExpression.new() + obj + accessOperator + op.index + "]"
                 let expr = UnaryExpression.new() + "delete " + target
                 w.assign(expr, to: instr.output)
@@ -795,7 +797,7 @@ public class JavaScriptLifter: Lifter {
 
             case .getComputedProperty(let op):
                 let obj = input(0)
-                let accessOperator = op.isGuarded ? "?.[" : "["
+                let accessOperator = (op.isGuarded && version != .es5) ? "?.[" : "["
                 let expr = MemberExpression.new() + obj + accessOperator + input(1).text + "]"
                 w.assign(expr, to: instr.output)
 
@@ -816,7 +818,7 @@ public class JavaScriptLifter: Lifter {
             case .deleteComputedProperty(let op):
                 // For aesthetic reasons, we don't want to inline the lhs of a property deletion, so force it to be stored in a variable.
                 let obj = inputAsIdentifier(0)
-                let accessOperator = op.isGuarded ? "?.[" : "["
+                let accessOperator = (op.isGuarded && version != .es5) ? "?.[" : "["
                 let target = MemberExpression.new() + obj + accessOperator + input(1).text + "]"
                 let expr = UnaryExpression.new() + "delete " + target
                 w.assign(expr, to: instr.output)
@@ -1302,7 +1304,7 @@ public class JavaScriptLifter: Lifter {
                         // The "good" case: we can emit `let i = X, j = Y, ...`
                         assert(loopVars.count == inputs.count)
                         let declarations = zip(loopVars, inputs).map({ "\($0) = \($1)" }).joined(separator: ", ")
-                        initializer = "let \(declarations)"
+                        initializer = "\(w.varKeyword) \(declarations)"
                         let code = w.popTemporaryOutputBuffer()
                         assert(code.isEmpty)
                     } else {
@@ -1313,14 +1315,14 @@ public class JavaScriptLifter: Lifter {
                             w.emit("return \(input(0));")
                             let I = loopVars[0]
                             let CODE = w.popTemporaryOutputBuffer()
-                            initializer = "let \(I) = (() => {\n\(CODE)    })()"
+                            initializer = "\(w.varKeyword) \(I) = (() => {\n\(CODE)    })()"
                         } else {
                             // Emit a `let [i, j, k] = (() => { ...; return [X, Y, Z]; })()`
                             let initialLoopVarValues = inputs.map({ $0.text }).joined(separator: ", ")
                             w.emit("return [\(initialLoopVarValues)];")
                             let VARS = loopVars.joined(separator: ", ")
                             let CODE = w.popTemporaryOutputBuffer()
-                            initializer = "let [\(VARS)] = (() => {\n\(CODE)    })()"
+                            initializer = "\(w.varKeyword) [\(VARS)] = (() => {\n\(CODE)    })()"
                         }
                     }
                 }
@@ -2029,6 +2031,9 @@ public class JavaScriptLifter: Lifter {
     }
 
     private func haveSpecialHandlingForGuardedOp(_ op: Operation) -> Bool {
+        if version == .es5 {
+            return false
+        }
         switch op.opcode {
             // We handle guarded property loads by emitting an optional chain, so no try-catch is necessary.
         case .getProperty,

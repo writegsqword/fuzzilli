@@ -48,7 +48,117 @@ let duktapeProfile = Profile(
 
     additionalProgramTemplates: WeightedList<ProgramTemplate>([]),
 
-    disabledCodeGenerators: [],
+    // Disable ES6+ generators for Duktape 2.3 (ES5).
+    disabledCodeGenerators: [
+        // Classes / private fields / super / new.target
+        "ClassDefinitionGenerator",
+        "ClassConstructorGenerator",
+        "ClassInstancePropertyGenerator",
+        "ClassInstanceElementGenerator",
+        "ClassInstanceComputedPropertyGenerator",
+        "ClassInstanceMethodGenerator",
+        "ClassInstanceComputedMethodGenerator",
+        "ClassInstanceGetterGenerator",
+        "ClassInstanceSetterGenerator",
+        "ClassStaticPropertyGenerator",
+        "ClassStaticElementGenerator",
+        "ClassStaticComputedPropertyGenerator",
+        "ClassStaticInitializerGenerator",
+        "ClassStaticMethodGenerator",
+        "ClassStaticComputedMethodGenerator",
+        "ClassStaticGetterGenerator",
+        "ClassStaticSetterGenerator",
+        "ClassPrivateInstancePropertyGenerator",
+        "ClassPrivateInstanceMethodGenerator",
+        "ClassPrivateStaticPropertyGenerator",
+        "ClassPrivateStaticMethodGenerator",
+        "PrivatePropertyRetrievalGenerator",
+        "PrivatePropertyAssignmentGenerator",
+        "PrivatePropertyUpdateGenerator",
+        "PrivateMethodCallGenerator",
+        "SuperMethodCallGenerator",
+        "SuperPropertyRetrievalGenerator",
+        "SuperPropertyAssignmentGenerator",
+        "ComputedSuperPropertyRetrievalGenerator",
+        "ComputedSuperPropertyAssignmentGenerator",
+        "SuperPropertyUpdateGenerator",
+        "LoadNewTargetGenerator",
+        "ConstructWithDifferentNewTargetGenerator",
+
+        // Async / generators / arrow functions
+        "ArrowFunctionGenerator",
+        "AsyncArrowFunctionGenerator",
+        "AsyncFunctionGenerator",
+        "GeneratorFunctionGenerator",
+        "AsyncGeneratorFunctionGenerator",
+        "AwaitGenerator",
+        "YieldGenerator",
+        "YieldEachGenerator",
+
+        // Template literals / object literal methods / computed properties
+        "TemplateStringGenerator",
+        "ObjectLiteralMethodGenerator",
+        "ObjectLiteralComputedMethodGenerator",
+        "ObjectLiteralComputedPropertyGenerator",
+        "ObjectLiteralCopyPropertiesGenerator",
+
+        // Spread / destructuring / iterators / for-of
+        "ArrayWithSpreadGenerator",
+        "MethodCallWithSpreadGenerator",
+        "ComputedMethodCallWithSpreadGenerator",
+        "FunctionCallWithSpreadGenerator",
+        "ConstructorCallWithSpreadGenerator",
+        "DestructArrayGenerator",
+        "DestructArrayAndReassignGenerator",
+        "DestructObjectGenerator",
+        "DestructObjectAndReassignGenerator",
+        "ForOfLoopGenerator",
+        "ForOfWithDestructLoopGenerator",
+        "IteratorGenerator",
+
+        // Symbols / proxies / reflect / well-known properties
+        "SymbolGenerator",
+        "ProxyGenerator",
+        "ReflectGenerator",
+        "WellKnownPropertyLoadGenerator",
+        "WellKnownPropertyStoreGenerator",
+
+        // BigInt
+        "BigIntGenerator",
+        "BigIntMathGenerator",
+
+        // Typed arrays / buffers / SAB / Atomics / Intl / Temporal
+        "TypedArrayFromBufferGenerator",
+        "TypedArrayLastIndexGenerator",
+        "DataViewFromBufferGenerator",
+        "ResizableArrayBufferGenerator",
+        "ResizableBufferResizeGenerator",
+        "GrowableSharedArrayBufferGenerator",
+        "GrowableSharedBufferGrowGenerator",
+        "AtomicsGenerator",
+        "BuiltinIntlGenerator",
+        "BuiltinTemporalGenerator",
+
+        // Disposable objects / using
+        "DisposableObjVariableGenerator",
+        "AsyncDisposableObjVariableGenerator",
+        "DisposableClassVariableGenerator",
+        "AsyncDisposableClassVariableGenerator",
+
+        // Other generators that are invalid or too new in Duktape 2.3
+        "ImitationGenerator",
+        "HexGenerator",
+        "Base64Generator",
+        "RegExpGenerator",
+        "StringNormalizeGenerator",
+        "PromiseGenerator",
+        "EvalGenerator",
+        "ThrowGenerator",
+
+        // API-heavy generators that often target newer builtins
+        "ApiMethodCallGenerator",
+        "ApiFunctionCallGenerator",
+    ],
 
     disabledMutators: [],
 
