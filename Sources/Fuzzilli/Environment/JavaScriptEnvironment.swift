@@ -317,8 +317,8 @@ public class JavaScriptEnvironment: ComponentBase {
     private let isES6: Bool
 
     public init(additionalBuiltins: [String: ILType] = [:], additionalObjectGroups: [ObjectGroup] = [], additionalEnumerations: [ILType] = [], ecmaVersion: ECMAScriptVersion = .es6) {
-        super.init(name: "JavaScriptEnvironment")
         self.isES6 = (ecmaVersion == .es6)
+        super.init(name: "JavaScriptEnvironment")
 
         // Build model of the JavaScript environment
 
