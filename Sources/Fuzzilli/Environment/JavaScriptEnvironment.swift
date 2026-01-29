@@ -314,8 +314,11 @@ public class JavaScriptEnvironment: ComponentBase {
     private var producingProperties: [ILType: [(group: String, property: String)]] = [:]
     private var subtypes: [ILType: [ILType]] = [:]
 
-    public init(additionalBuiltins: [String: ILType] = [:], additionalObjectGroups: [ObjectGroup] = [], additionalEnumerations: [ILType] = []) {
+    private let isES6: Bool
+
+    public init(additionalBuiltins: [String: ILType] = [:], additionalObjectGroups: [ObjectGroup] = [], additionalEnumerations: [ILType] = [], ecmaVersion: ECMAScriptVersion = .es6) {
         super.init(name: "JavaScriptEnvironment")
+        self.isES6 = (ecmaVersion == .es6)
 
         // Build model of the JavaScript environment
 
@@ -329,37 +332,12 @@ public class JavaScriptEnvironment: ComponentBase {
         registerObjectGroup(.jsStrings)
         registerObjectGroup(.jsArrays)
         registerObjectGroup(.jsArguments)
-        registerObjectGroup(.jsIterator)
-        registerObjectGroup(.jsIteratorPrototype)
-        registerObjectGroup(.jsIteratorConstructor)
-        registerObjectGroup(.jsGenerators)
-        registerObjectGroup(.jsPromises)
         registerObjectGroup(.jsRegExps)
         registerObjectGroup(.jsFunctions)
-        registerObjectGroup(.jsSymbols)
-        registerObjectGroup(.jsMaps)
-        registerObjectGroup(.jsWeakMaps)
-        registerObjectGroup(.jsSets)
-        registerObjectGroup(.jsWeakSets)
-        registerObjectGroup(.jsWeakRefs)
-        registerObjectGroup(.jsFinalizationRegistrys)
-        registerObjectGroup(.jsArrayBuffers)
-        registerObjectGroup(.jsSharedArrayBuffers)
-        for variant in ["Uint8Array", "Int8Array", "Uint16Array", "Int16Array", "Uint32Array", "Int32Array", "Float32Array", "Float64Array", "Uint8ClampedArray", "BigInt64Array", "BigUint64Array"] {
-            registerObjectGroup(.jsTypedArrays(variant))
-        }
-        registerObjectGroup(.jsUint8ArrayConstructor)
-        registerObjectGroup(.jsUint8ArrayPrototype)
-        registerObjectGroup(.jsDataViews)
-
         registerObjectGroup(.jsObjectConstructor)
-        registerObjectGroup(.jsPromiseConstructor)
-        registerObjectGroup(.jsPromisePrototype)
         registerObjectGroup(.jsArrayConstructor)
         registerObjectGroup(.jsStringConstructor)
         registerObjectGroup(.jsStringPrototype)
-        registerObjectGroup(.jsSymbolConstructor)
-        registerObjectGroup(.jsBigIntConstructor)
         registerObjectGroup(.jsBooleanConstructor)
         registerObjectGroup(.jsNumberConstructor)
         registerObjectGroup(.jsMathObject)
@@ -367,199 +345,235 @@ public class JavaScriptEnvironment: ComponentBase {
         registerObjectGroup(.jsDateConstructor)
         registerObjectGroup(.jsDatePrototype)
         registerObjectGroup(.jsJSONObject)
-        registerObjectGroup(.jsReflectObject)
-        registerObjectGroup(.jsArrayBufferConstructor)
-        registerObjectGroup(.jsArrayBufferPrototype)
-        registerObjectGroup(.jsSharedArrayBufferConstructor)
-        registerObjectGroup(.jsSharedArrayBufferPrototype)
-        for variant in ["Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "AggregateError", "URIError", "SuppressedError"] {
+        let baseErrorVariants = ["Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"]
+        for variant in baseErrorVariants {
             registerObjectGroup(.jsError(variant))
         }
-        registerObjectGroup(.jsWebAssemblyCompileOptions)
-        registerObjectGroup(.jsWebAssemblyModuleConstructor)
-        registerObjectGroup(.jsWebAssemblyGlobalConstructor)
-        registerObjectGroup(.jsWebAssemblyGlobalPrototype)
-        registerObjectGroup(.jsWebAssemblyInstanceConstructor)
-        registerObjectGroup(.jsWebAssemblyInstance)
-        registerObjectGroup(.jsWebAssemblyModule)
-        registerObjectGroup(.jsWebAssemblyMemoryPrototype)
-        registerObjectGroup(.jsWebAssemblyMemoryConstructor)
-        registerObjectGroup(.jsWebAssemblyTablePrototype)
-        registerObjectGroup(.jsWebAssemblyTableConstructor)
-        registerObjectGroup(.jsWebAssemblyTagPrototype)
-        registerObjectGroup(.jsWebAssemblyTagConstructor)
-        registerObjectGroup(.jsWebAssemblyException)
-        registerObjectGroup(.jsWebAssemblyExceptionPrototype)
-        registerObjectGroup(.jsWebAssemblyExceptionConstructor)
-        registerObjectGroup(.jsWebAssembly)
-        registerObjectGroup(.jsWasmGlobal)
-        registerObjectGroup(.jsWasmMemory)
-        registerObjectGroup(.wasmTable)
-        registerObjectGroup(.jsWasmTag)
-        registerObjectGroup(.jsWasmSuspendingObject)
-        registerObjectGroup(.jsTemporalObject)
-        registerObjectGroup(.jsTemporalNow)
-        registerObjectGroup(.jsTemporalInstant)
-        registerObjectGroup(.jsTemporalInstantConstructor)
-        registerObjectGroup(.jsTemporalInstantPrototype)
-        registerObjectGroup(.jsTemporalDuration)
-        registerObjectGroup(.jsTemporalDurationConstructor)
-        registerObjectGroup(.jsTemporalDurationPrototype)
-        registerObjectGroup(.jsTemporalPlainTime)
-        registerObjectGroup(.jsTemporalPlainTimeConstructor)
-        registerObjectGroup(.jsTemporalPlainTimePrototype)
-        registerObjectGroup(.jsTemporalPlainYearMonth)
-        registerObjectGroup(.jsTemporalPlainYearMonthConstructor)
-        registerObjectGroup(.jsTemporalPlainYearMonthPrototype)
-        registerObjectGroup(.jsTemporalPlainMonthDay)
-        registerObjectGroup(.jsTemporalPlainMonthDayConstructor)
-        registerObjectGroup(.jsTemporalPlainMonthDayPrototype)
-        registerObjectGroup(.jsTemporalPlainDate)
-        registerObjectGroup(.jsTemporalPlainDateConstructor)
-        registerObjectGroup(.jsTemporalPlainDatePrototype)
-        registerObjectGroup(.jsTemporalPlainDateTime)
-        registerObjectGroup(.jsTemporalPlainDateTimeConstructor)
-        registerObjectGroup(.jsTemporalPlainDateTimePrototype)
-        registerObjectGroup(.jsTemporalZonedDateTime)
-        registerObjectGroup(.jsTemporalZonedDateTimeConstructor)
-        registerObjectGroup(.jsTemporalZonedDateTimePrototype)
-        registerObjectGroup(.jsIntlObject)
-        registerObjectGroup(.jsIntlCollator)
-        registerObjectGroup(.jsIntlCollatorConstructor)
-        registerObjectGroup(.jsIntlCollatorPrototype)
-        registerObjectGroup(.jsIntlDateTimeFormat)
-        registerObjectGroup(.jsIntlDateTimeFormatConstructor)
-        registerObjectGroup(.jsIntlDateTimeFormatPrototype)
-        registerObjectGroup(.jsIntlListFormat)
-        registerObjectGroup(.jsIntlListFormatConstructor)
-        registerObjectGroup(.jsIntlListFormatPrototype)
-        registerObjectGroup(.jsIntlLocale)
-        registerObjectGroup(.jsIntlLocaleConstructor)
-        registerObjectGroup(.jsIntlLocalePrototype)
-        registerObjectGroup(.jsIntlNumberFormat)
-        registerObjectGroup(.jsIntlNumberFormatConstructor)
-        registerObjectGroup(.jsIntlNumberFormatPrototype)
-        registerObjectGroup(.jsIntlPluralRules)
-        registerObjectGroup(.jsIntlPluralRulesConstructor)
-        registerObjectGroup(.jsIntlPluralRulesPrototype)
-        registerObjectGroup(.jsIntlRelativeTimeFormat)
-        registerObjectGroup(.jsIntlRelativeTimeFormatConstructor)
-        registerObjectGroup(.jsIntlRelativeTimeFormatPrototype)
-        registerObjectGroup(.jsIntlSegmenter)
-        registerObjectGroup(.jsIntlSegmenterConstructor)
-        registerObjectGroup(.jsIntlSegmenterPrototype)
-        registerObjectGroup(.jsIntlSegmenterSegments)
+
+        if isES6 {
+            registerObjectGroup(.jsIterator)
+            registerObjectGroup(.jsIteratorPrototype)
+            registerObjectGroup(.jsIteratorConstructor)
+            registerObjectGroup(.jsGenerators)
+            registerObjectGroup(.jsPromises)
+            registerObjectGroup(.jsSymbols)
+            registerObjectGroup(.jsMaps)
+            registerObjectGroup(.jsWeakMaps)
+            registerObjectGroup(.jsSets)
+            registerObjectGroup(.jsWeakSets)
+            registerObjectGroup(.jsWeakRefs)
+            registerObjectGroup(.jsFinalizationRegistrys)
+            registerObjectGroup(.jsArrayBuffers)
+            registerObjectGroup(.jsSharedArrayBuffers)
+            for variant in ["Uint8Array", "Int8Array", "Uint16Array", "Int16Array", "Uint32Array", "Int32Array", "Float32Array", "Float64Array", "Uint8ClampedArray", "BigInt64Array", "BigUint64Array"] {
+                registerObjectGroup(.jsTypedArrays(variant))
+            }
+            registerObjectGroup(.jsUint8ArrayConstructor)
+            registerObjectGroup(.jsUint8ArrayPrototype)
+            registerObjectGroup(.jsDataViews)
+
+            registerObjectGroup(.jsPromiseConstructor)
+            registerObjectGroup(.jsPromisePrototype)
+            registerObjectGroup(.jsSymbolConstructor)
+            registerObjectGroup(.jsBigIntConstructor)
+            registerObjectGroup(.jsReflectObject)
+            registerObjectGroup(.jsArrayBufferConstructor)
+            registerObjectGroup(.jsArrayBufferPrototype)
+            registerObjectGroup(.jsSharedArrayBufferConstructor)
+            registerObjectGroup(.jsSharedArrayBufferPrototype)
+            for variant in ["AggregateError", "SuppressedError"] {
+                registerObjectGroup(.jsError(variant))
+            }
+            registerObjectGroup(.jsWebAssemblyCompileOptions)
+            registerObjectGroup(.jsWebAssemblyModuleConstructor)
+            registerObjectGroup(.jsWebAssemblyGlobalConstructor)
+            registerObjectGroup(.jsWebAssemblyGlobalPrototype)
+            registerObjectGroup(.jsWebAssemblyInstanceConstructor)
+            registerObjectGroup(.jsWebAssemblyInstance)
+            registerObjectGroup(.jsWebAssemblyModule)
+            registerObjectGroup(.jsWebAssemblyMemoryPrototype)
+            registerObjectGroup(.jsWebAssemblyMemoryConstructor)
+            registerObjectGroup(.jsWebAssemblyTablePrototype)
+            registerObjectGroup(.jsWebAssemblyTableConstructor)
+            registerObjectGroup(.jsWebAssemblyTagPrototype)
+            registerObjectGroup(.jsWebAssemblyTagConstructor)
+            registerObjectGroup(.jsWebAssemblyException)
+            registerObjectGroup(.jsWebAssemblyExceptionPrototype)
+            registerObjectGroup(.jsWebAssemblyExceptionConstructor)
+            registerObjectGroup(.jsWebAssembly)
+            registerObjectGroup(.jsWasmGlobal)
+            registerObjectGroup(.jsWasmMemory)
+            registerObjectGroup(.wasmTable)
+            registerObjectGroup(.jsWasmTag)
+            registerObjectGroup(.jsWasmSuspendingObject)
+            registerObjectGroup(.jsTemporalObject)
+            registerObjectGroup(.jsTemporalNow)
+            registerObjectGroup(.jsTemporalInstant)
+            registerObjectGroup(.jsTemporalInstantConstructor)
+            registerObjectGroup(.jsTemporalInstantPrototype)
+            registerObjectGroup(.jsTemporalDuration)
+            registerObjectGroup(.jsTemporalDurationConstructor)
+            registerObjectGroup(.jsTemporalDurationPrototype)
+            registerObjectGroup(.jsTemporalPlainTime)
+            registerObjectGroup(.jsTemporalPlainTimeConstructor)
+            registerObjectGroup(.jsTemporalPlainTimePrototype)
+            registerObjectGroup(.jsTemporalPlainYearMonth)
+            registerObjectGroup(.jsTemporalPlainYearMonthConstructor)
+            registerObjectGroup(.jsTemporalPlainYearMonthPrototype)
+            registerObjectGroup(.jsTemporalPlainMonthDay)
+            registerObjectGroup(.jsTemporalPlainMonthDayConstructor)
+            registerObjectGroup(.jsTemporalPlainMonthDayPrototype)
+            registerObjectGroup(.jsTemporalPlainDate)
+            registerObjectGroup(.jsTemporalPlainDateConstructor)
+            registerObjectGroup(.jsTemporalPlainDatePrototype)
+            registerObjectGroup(.jsTemporalPlainDateTime)
+            registerObjectGroup(.jsTemporalPlainDateTimeConstructor)
+            registerObjectGroup(.jsTemporalPlainDateTimePrototype)
+            registerObjectGroup(.jsTemporalZonedDateTime)
+            registerObjectGroup(.jsTemporalZonedDateTimeConstructor)
+            registerObjectGroup(.jsTemporalZonedDateTimePrototype)
+            registerObjectGroup(.jsIntlObject)
+            registerObjectGroup(.jsIntlCollator)
+            registerObjectGroup(.jsIntlCollatorConstructor)
+            registerObjectGroup(.jsIntlCollatorPrototype)
+            registerObjectGroup(.jsIntlDateTimeFormat)
+            registerObjectGroup(.jsIntlDateTimeFormatConstructor)
+            registerObjectGroup(.jsIntlDateTimeFormatPrototype)
+            registerObjectGroup(.jsIntlListFormat)
+            registerObjectGroup(.jsIntlListFormatConstructor)
+            registerObjectGroup(.jsIntlListFormatPrototype)
+            registerObjectGroup(.jsIntlLocale)
+            registerObjectGroup(.jsIntlLocaleConstructor)
+            registerObjectGroup(.jsIntlLocalePrototype)
+            registerObjectGroup(.jsIntlNumberFormat)
+            registerObjectGroup(.jsIntlNumberFormatConstructor)
+            registerObjectGroup(.jsIntlNumberFormatPrototype)
+            registerObjectGroup(.jsIntlPluralRules)
+            registerObjectGroup(.jsIntlPluralRulesConstructor)
+            registerObjectGroup(.jsIntlPluralRulesPrototype)
+            registerObjectGroup(.jsIntlRelativeTimeFormat)
+            registerObjectGroup(.jsIntlRelativeTimeFormatConstructor)
+            registerObjectGroup(.jsIntlRelativeTimeFormatPrototype)
+            registerObjectGroup(.jsIntlSegmenter)
+            registerObjectGroup(.jsIntlSegmenterConstructor)
+            registerObjectGroup(.jsIntlSegmenterPrototype)
+            registerObjectGroup(.jsIntlSegmenterSegments)
+        }
 
         for group in additionalObjectGroups {
             registerObjectGroup(group)
         }
 
-        registerEnumeration(.jsTemporalCalendarEnum)
-        registerEnumeration(ObjectGroup.jsTemporalDirectionParam)
-        registerEnumeration(ObjectGroup.jsIntlRelativeTimeFormatUnitEnum)
-        registerEnumeration(ObjectGroup.jsIntlSupportedValuesEnum)
-        registerEnumeration(OptionsBag.jsTemporalUnitEnum)
-        registerEnumeration(OptionsBag.jsTemporalRoundingModeEnum)
-        registerEnumeration(OptionsBag.jsTemporalShowCalendarEnum)
-        registerEnumeration(OptionsBag.jsTemporalShowOffsetEnum)
-        registerEnumeration(OptionsBag.jsTemporalShowTimeZoneEnum)
-        registerEnumeration(OptionsBag.jsTemporalOverflowEnum)
-        registerEnumeration(OptionsBag.jsTemporalDisambiguationEnum)
-        registerEnumeration(OptionsBag.jsTemporalOffsetEnum)
-        registerEnumeration(OptionsBag.jsIntlLocaleMatcherEnum)
-        registerEnumeration(OptionsBag.jsIntlNumberingSystemEnum)
-        registerEnumeration(OptionsBag.jsIntlHourCycleEnum)
-        registerEnumeration(OptionsBag.jsIntlLongShortNarrowEnum)
-        registerEnumeration(OptionsBag.jsIntlLongShortEnum)
-        registerEnumeration(OptionsBag.jsIntlAutoAlwaysEnum)
-        registerEnumeration(OptionsBag.jsIntlNumeric2DigitEnum)
-        registerEnumeration(OptionsBag.jsIntlMonthEnum)
-        registerEnumeration(OptionsBag.jsIntlTimeZoneNameEnum)
-        registerEnumeration(OptionsBag.jsIntlFormatMatcherEnum)
-        registerEnumeration(OptionsBag.jsIntlFullLongMediumShort)
-        registerEnumeration(OptionsBag.jsIntlCollatorUsageEnum)
-        registerEnumeration(OptionsBag.jsIntlCollationEnum)
-        registerEnumeration(OptionsBag.jsIntlCollationTypeEnum)
-        registerEnumeration(OptionsBag.jsIntlCaseFirstEnum)
-        registerEnumeration(OptionsBag.jsIntlCollatorSensitivityEnum)
-        registerEnumeration(OptionsBag.jsIntlListFormatTypeEnum)
-        registerEnumeration(OptionsBag.jsIntlNumberFormatStyleEnum)
-        registerEnumeration(OptionsBag.jsIntlCurrencySystemEnum)
-        registerEnumeration(OptionsBag.jsIntlCurrencyDisplayEnum)
-        registerEnumeration(OptionsBag.jsIntlCurrencySignEnum)
-        registerEnumeration(OptionsBag.jsIntlRoundingPriorityEnum)
-        registerEnumeration(OptionsBag.jsIntlRoundingModeEnum)
-        registerEnumeration(OptionsBag.jsIntlTrailingZeroDisplayEnum)
-        registerEnumeration(OptionsBag.jsIntlNumberFormatNotationEnum)
-        registerEnumeration(OptionsBag.jsIntlNumberFormatGroupingEnum)
-        registerEnumeration(OptionsBag.jsIntlSignDisplayEnum)
-        registerEnumeration(OptionsBag.jsIntlPluralRulesTypeEnum)
-        registerEnumeration(OptionsBag.jsIntlSegmenterGranularityEnum)
-        registerEnumeration(OptionsBag.base64Alphabet)
-        registerEnumeration(OptionsBag.base64LastChunkHandling)
+        if isES6 {
+            registerEnumeration(.jsTemporalCalendarEnum)
+            registerEnumeration(ObjectGroup.jsTemporalDirectionParam)
+            registerEnumeration(ObjectGroup.jsIntlRelativeTimeFormatUnitEnum)
+            registerEnumeration(ObjectGroup.jsIntlSupportedValuesEnum)
+            registerEnumeration(OptionsBag.jsTemporalUnitEnum)
+            registerEnumeration(OptionsBag.jsTemporalRoundingModeEnum)
+            registerEnumeration(OptionsBag.jsTemporalShowCalendarEnum)
+            registerEnumeration(OptionsBag.jsTemporalShowOffsetEnum)
+            registerEnumeration(OptionsBag.jsTemporalShowTimeZoneEnum)
+            registerEnumeration(OptionsBag.jsTemporalOverflowEnum)
+            registerEnumeration(OptionsBag.jsTemporalDisambiguationEnum)
+            registerEnumeration(OptionsBag.jsTemporalOffsetEnum)
+            registerEnumeration(OptionsBag.jsIntlLocaleMatcherEnum)
+            registerEnumeration(OptionsBag.jsIntlNumberingSystemEnum)
+            registerEnumeration(OptionsBag.jsIntlHourCycleEnum)
+            registerEnumeration(OptionsBag.jsIntlLongShortNarrowEnum)
+            registerEnumeration(OptionsBag.jsIntlLongShortEnum)
+            registerEnumeration(OptionsBag.jsIntlAutoAlwaysEnum)
+            registerEnumeration(OptionsBag.jsIntlNumeric2DigitEnum)
+            registerEnumeration(OptionsBag.jsIntlMonthEnum)
+            registerEnumeration(OptionsBag.jsIntlTimeZoneNameEnum)
+            registerEnumeration(OptionsBag.jsIntlFormatMatcherEnum)
+            registerEnumeration(OptionsBag.jsIntlFullLongMediumShort)
+            registerEnumeration(OptionsBag.jsIntlCollatorUsageEnum)
+            registerEnumeration(OptionsBag.jsIntlCollationEnum)
+            registerEnumeration(OptionsBag.jsIntlCollationTypeEnum)
+            registerEnumeration(OptionsBag.jsIntlCaseFirstEnum)
+            registerEnumeration(OptionsBag.jsIntlCollatorSensitivityEnum)
+            registerEnumeration(OptionsBag.jsIntlListFormatTypeEnum)
+            registerEnumeration(OptionsBag.jsIntlNumberFormatStyleEnum)
+            registerEnumeration(OptionsBag.jsIntlCurrencySystemEnum)
+            registerEnumeration(OptionsBag.jsIntlCurrencyDisplayEnum)
+            registerEnumeration(OptionsBag.jsIntlCurrencySignEnum)
+            registerEnumeration(OptionsBag.jsIntlRoundingPriorityEnum)
+            registerEnumeration(OptionsBag.jsIntlRoundingModeEnum)
+            registerEnumeration(OptionsBag.jsIntlTrailingZeroDisplayEnum)
+            registerEnumeration(OptionsBag.jsIntlNumberFormatNotationEnum)
+            registerEnumeration(OptionsBag.jsIntlNumberFormatGroupingEnum)
+            registerEnumeration(OptionsBag.jsIntlSignDisplayEnum)
+            registerEnumeration(OptionsBag.jsIntlPluralRulesTypeEnum)
+            registerEnumeration(OptionsBag.jsIntlSegmenterGranularityEnum)
+            registerEnumeration(OptionsBag.base64Alphabet)
+            registerEnumeration(OptionsBag.base64LastChunkHandling)
+        }
 
         for enumeration in additionalEnumerations {
             assert(enumeration.isEnumeration)
             registerEnumeration(enumeration)
         }
 
-        registerOptionsBag(.jsTemporalDifferenceSettingOrRoundTo)
-        registerOptionsBag(.jsTemporalToStringSettings)
-        registerOptionsBag(.jsTemporalOverflowSettings)
-        registerOptionsBag(.jsTemporalZonedInterpretationSettings)
-        registerOptionsBag(.jsTemporalDurationRoundToSettings)
-        registerOptionsBag(.jsTemporalDurationTotalOfSettings)
-        registerOptionsBag(.toBase64Settings)
-        registerOptionsBag(.fromBase64Settings)
-        registerOptionsBag(.jsTemporalPlainDateToZDTSettings)
-        registerOptionsBag(.jsIntlDateTimeFormatSettings)
-        registerOptionsBag(.jsIntlCollatorSettings)
-        registerOptionsBag(.jsIntlListFormatSettings)
-        registerOptionsBag(.jsIntlLocaleSettings)
-        registerOptionsBag(.jsIntlNumberFormatSettings)
-        registerOptionsBag(.jsIntlPluralRulesSettings)
-        registerOptionsBag(.jsIntlRelativeTimeFormatSettings)
-        registerOptionsBag(.jsIntlSegmenterSettings)
-        registerOptionsBag(.jsIntlLocaleMatcherSettings)
+        if isES6 {
+            registerOptionsBag(.jsTemporalDifferenceSettingOrRoundTo)
+            registerOptionsBag(.jsTemporalToStringSettings)
+            registerOptionsBag(.jsTemporalOverflowSettings)
+            registerOptionsBag(.jsTemporalZonedInterpretationSettings)
+            registerOptionsBag(.jsTemporalDurationRoundToSettings)
+            registerOptionsBag(.jsTemporalDurationTotalOfSettings)
+            registerOptionsBag(.toBase64Settings)
+            registerOptionsBag(.fromBase64Settings)
+            registerOptionsBag(.jsTemporalPlainDateToZDTSettings)
+            registerOptionsBag(.jsIntlDateTimeFormatSettings)
+            registerOptionsBag(.jsIntlCollatorSettings)
+            registerOptionsBag(.jsIntlListFormatSettings)
+            registerOptionsBag(.jsIntlLocaleSettings)
+            registerOptionsBag(.jsIntlNumberFormatSettings)
+            registerOptionsBag(.jsIntlPluralRulesSettings)
+            registerOptionsBag(.jsIntlRelativeTimeFormatSettings)
+            registerOptionsBag(.jsIntlSegmenterSettings)
+            registerOptionsBag(.jsIntlLocaleMatcherSettings)
 
-        registerTemporalFieldsObject(.jsTemporalPlainTimeLikeObject, forWith: false, dateFields: false, timeFields: true, zonedFields: false)
-        registerTemporalFieldsObject(.jsTemporalPlainDateLikeObject, forWith: false, dateFields: true, timeFields: false, zonedFields: false)
-        registerTemporalFieldsObject(.jsTemporalPlainDateLikeObjectForWith, forWith: true, dateFields: true, timeFields: false, zonedFields: false)
-        registerTemporalFieldsObject(.jsTemporalPlainDateTimeLikeObject, forWith: false, dateFields: true, timeFields: true, zonedFields: false)
-        registerTemporalFieldsObject(.jsTemporalPlainDateTimeLikeObjectForWith, forWith: true, dateFields: true, timeFields: true, zonedFields: false)
-        registerTemporalFieldsObject(.jsTemporalZonedDateTimeLikeObject, forWith: false, dateFields: true, timeFields: true, zonedFields: true)
-        registerTemporalFieldsObject(.jsTemporalZonedDateTimeLikeObjectForWith, forWith: true, dateFields: true, timeFields: true, zonedFields: true)
+            registerTemporalFieldsObject(.jsTemporalPlainTimeLikeObject, forWith: false, dateFields: false, timeFields: true, zonedFields: false)
+            registerTemporalFieldsObject(.jsTemporalPlainDateLikeObject, forWith: false, dateFields: true, timeFields: false, zonedFields: false)
+            registerTemporalFieldsObject(.jsTemporalPlainDateLikeObjectForWith, forWith: true, dateFields: true, timeFields: false, zonedFields: false)
+            registerTemporalFieldsObject(.jsTemporalPlainDateTimeLikeObject, forWith: false, dateFields: true, timeFields: true, zonedFields: false)
+            registerTemporalFieldsObject(.jsTemporalPlainDateTimeLikeObjectForWith, forWith: true, dateFields: true, timeFields: true, zonedFields: false)
+            registerTemporalFieldsObject(.jsTemporalZonedDateTimeLikeObject, forWith: false, dateFields: true, timeFields: true, zonedFields: true)
+            registerTemporalFieldsObject(.jsTemporalZonedDateTimeLikeObjectForWith, forWith: true, dateFields: true, timeFields: true, zonedFields: true)
 
         // This isn't a normal "temporal fields object" but is similar, and needs a similar producing generator
-        registerObjectGroup(.jsTemporalDurationLikeObject)
-        addProducingGenerator(forType: ObjectGroup.jsTemporalDurationLikeObject.instanceType, with: { b in b.createTemporalDurationFieldsObject() })
-        addNamedStringGenerator(forType: ObjectGroup.jsTemporalTimeZoneLike,
-         with: {
-            if Bool.random() {
-                return ProgramBuilder.randomTimeZoneString()
-            } else {
-                return ProgramBuilder.randomUTCOffsetString(mayHaveSeconds: true)
-            }
-        })
-        addNamedStringGenerator(forType: .jsIntlLocaleString, with: { ProgramBuilder.constructIntlLocaleString() })
-        addNamedStringGenerator(forType: .jsIntlLanguageString, with: { ProgramBuilder.constructIntlLanguageString() })
-        addNamedStringGenerator(forType: .jsIntlScriptString, with: { ProgramBuilder.constructIntlScriptString() })
-        addNamedStringGenerator(forType: .jsIntlRegionString, with: { ProgramBuilder.constructIntlRegionString() })
-        addNamedStringGenerator(forType: .jsIntlVariantString, with: { ProgramBuilder.constructIntlVariantString() })
-        addNamedStringGenerator(forType: .jsIntlUnitString, with: { ProgramBuilder.constructIntlUnit() })
+            registerObjectGroup(.jsTemporalDurationLikeObject)
+            addProducingGenerator(forType: ObjectGroup.jsTemporalDurationLikeObject.instanceType, with: { b in b.createTemporalDurationFieldsObject() })
+            addNamedStringGenerator(forType: ObjectGroup.jsTemporalTimeZoneLike,
+             with: {
+                if Bool.random() {
+                    return ProgramBuilder.randomTimeZoneString()
+                } else {
+                    return ProgramBuilder.randomUTCOffsetString(mayHaveSeconds: true)
+                }
+            })
+            addNamedStringGenerator(forType: .jsIntlLocaleString, with: { ProgramBuilder.constructIntlLocaleString() })
+            addNamedStringGenerator(forType: .jsIntlLanguageString, with: { ProgramBuilder.constructIntlLanguageString() })
+            addNamedStringGenerator(forType: .jsIntlScriptString, with: { ProgramBuilder.constructIntlScriptString() })
+            addNamedStringGenerator(forType: .jsIntlRegionString, with: { ProgramBuilder.constructIntlRegionString() })
+            addNamedStringGenerator(forType: .jsIntlVariantString, with: { ProgramBuilder.constructIntlVariantString() })
+            addNamedStringGenerator(forType: .jsIntlUnitString, with: { ProgramBuilder.constructIntlUnit() })
 
         // Temporal types are produced by a large number of methods; which means findOrGenerateType(), when asked to produce
         // a Temporal type, will tend towards trying to call a method on another Temporal type, which needs more Temporal types,
         // leading to a large amount of code generated. We do wish to test these codepaths as well, but by and large we
         // just want a freshly generated type.
-        addProducingGenerator(forType: .jsTemporalInstant, with: { $0.constructTemporalInstant() }, probability: 0.9)
-        addProducingGenerator(forType: .jsTemporalDuration, with: { $0.constructTemporalDuration() }, probability: 0.9)
-        addProducingGenerator(forType: .jsTemporalPlainTime, with: { $0.constructTemporalTime() }, probability: 0.9)
-        addProducingGenerator(forType: .jsTemporalPlainYearMonth, with: { $0.constructTemporalYearMonth() }, probability: 0.9)
-        addProducingGenerator(forType: .jsTemporalPlainMonthDay, with: { $0.constructTemporalMonthDay() }, probability: 0.9)
-        addProducingGenerator(forType: .jsTemporalPlainDate, with: { $0.constructTemporalDate() }, probability: 0.9)
-        addProducingGenerator(forType: .jsTemporalPlainDateTime, with: { $0.constructTemporalDateTime() }, probability: 0.9)
-        addProducingGenerator(forType: .jsTemporalZonedDateTime, with: { $0.constructTemporalZonedDateTime() }, probability: 0.9)
+            addProducingGenerator(forType: .jsTemporalInstant, with: { $0.constructTemporalInstant() }, probability: 0.9)
+            addProducingGenerator(forType: .jsTemporalDuration, with: { $0.constructTemporalDuration() }, probability: 0.9)
+            addProducingGenerator(forType: .jsTemporalPlainTime, with: { $0.constructTemporalTime() }, probability: 0.9)
+            addProducingGenerator(forType: .jsTemporalPlainYearMonth, with: { $0.constructTemporalYearMonth() }, probability: 0.9)
+            addProducingGenerator(forType: .jsTemporalPlainMonthDay, with: { $0.constructTemporalMonthDay() }, probability: 0.9)
+            addProducingGenerator(forType: .jsTemporalPlainDate, with: { $0.constructTemporalDate() }, probability: 0.9)
+            addProducingGenerator(forType: .jsTemporalPlainDateTime, with: { $0.constructTemporalDateTime() }, probability: 0.9)
+            addProducingGenerator(forType: .jsTemporalZonedDateTime, with: { $0.constructTemporalZonedDateTime() }, probability: 0.9)
+        }
 
         // Register builtins that should be available for fuzzing.
         // Here it is easy to selectively disable/enable some APIs for fuzzing by
@@ -570,34 +584,13 @@ public class JavaScriptEnvironment: ComponentBase {
         registerBuiltin("String", ofType: .jsStringConstructor)
         registerBuiltin("Boolean", ofType: .jsBooleanConstructor)
         registerBuiltin("Number", ofType: .jsNumberConstructor)
-        registerBuiltin("Symbol", ofType: .jsSymbolConstructor)
-        registerBuiltin("Iterator", ofType: .jsIteratorConstructor)
-        registerBuiltin("BigInt", ofType: .jsBigIntConstructor)
         registerBuiltin("RegExp", ofType: .jsRegExpConstructor)
-        for variant in ["Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "SuppressedError"] {
+        for variant in baseErrorVariants {
             registerBuiltin(variant, ofType: .jsErrorConstructor(variant))
         }
-        registerBuiltin("AggregateError", ofType: .functionAndConstructor([.plain(.iterable), .opt(.string), .opt(.object())] => .jsError("AggregateError")))
-        registerBuiltin("ArrayBuffer", ofType: .jsArrayBufferConstructor)
-        registerBuiltin("SharedArrayBuffer", ofType: .jsSharedArrayBufferConstructor)
-        // Uint8Array handled below.
-        for variant in ["Int8Array", "Uint16Array", "Int16Array", "Uint32Array", "Int32Array", "Float32Array", "Float64Array", "Uint8ClampedArray", "BigInt64Array", "BigUint64Array"] {
-            registerBuiltin(variant, ofType: .jsTypedArrayConstructor(variant))
-        }
-        registerBuiltin("Uint8Array", ofType: .jsUint8ArrayConstructor)
-        registerBuiltin("DataView", ofType: .jsDataViewConstructor)
         registerBuiltin("Date", ofType: .jsDateConstructor)
-        registerBuiltin("Promise", ofType: .jsPromiseConstructor)
-        registerBuiltin("Proxy", ofType: .jsProxyConstructor)
-        registerBuiltin("Map", ofType: .jsMapConstructor)
-        registerBuiltin("WeakMap", ofType: .jsWeakMapConstructor)
-        registerBuiltin("Set", ofType: .jsSetConstructor)
-        registerBuiltin("WeakSet", ofType: .jsWeakSetConstructor)
-        registerBuiltin("WeakRef", ofType: .jsWeakRefConstructor)
-        registerBuiltin("FinalizationRegistry", ofType: .jsFinalizationRegistryConstructor)
         registerBuiltin("Math", ofType: .jsMathObject)
         registerBuiltin("JSON", ofType: .jsJSONObject)
-        registerBuiltin("Reflect", ofType: .jsReflectObject)
         registerBuiltin("isNaN", ofType: .jsIsNaNFunction)
         registerBuiltin("isFinite", ofType: .jsIsFiniteFunction)
         //registerBuiltin("escape:", ofType: .jsEscapeFunction)
@@ -612,9 +605,34 @@ public class JavaScriptEnvironment: ComponentBase {
         registerBuiltin("undefined", ofType: .jsUndefined)
         registerBuiltin("NaN", ofType: .jsNaN)
         registerBuiltin("Infinity", ofType: .jsInfinity)
-        registerBuiltin("Temporal", ofType: .jsTemporalObject)
-        registerBuiltin("Intl", ofType: .jsIntlObject)
-        registerBuiltin("WebAssembly", ofType: ObjectGroup.jsWebAssembly.instanceType)
+
+        if isES6 {
+            registerBuiltin("Symbol", ofType: .jsSymbolConstructor)
+            registerBuiltin("Iterator", ofType: .jsIteratorConstructor)
+            registerBuiltin("BigInt", ofType: .jsBigIntConstructor)
+            registerBuiltin("AggregateError", ofType: .functionAndConstructor([.plain(.iterable), .opt(.string), .opt(.object())] => .jsError("AggregateError")))
+            registerBuiltin("SuppressedError", ofType: .jsErrorConstructor("SuppressedError"))
+            registerBuiltin("ArrayBuffer", ofType: .jsArrayBufferConstructor)
+            registerBuiltin("SharedArrayBuffer", ofType: .jsSharedArrayBufferConstructor)
+            // Uint8Array handled below.
+            for variant in ["Int8Array", "Uint16Array", "Int16Array", "Uint32Array", "Int32Array", "Float32Array", "Float64Array", "Uint8ClampedArray", "BigInt64Array", "BigUint64Array"] {
+                registerBuiltin(variant, ofType: .jsTypedArrayConstructor(variant))
+            }
+            registerBuiltin("Uint8Array", ofType: .jsUint8ArrayConstructor)
+            registerBuiltin("DataView", ofType: .jsDataViewConstructor)
+            registerBuiltin("Promise", ofType: .jsPromiseConstructor)
+            registerBuiltin("Proxy", ofType: .jsProxyConstructor)
+            registerBuiltin("Map", ofType: .jsMapConstructor)
+            registerBuiltin("WeakMap", ofType: .jsWeakMapConstructor)
+            registerBuiltin("Set", ofType: .jsSetConstructor)
+            registerBuiltin("WeakSet", ofType: .jsWeakSetConstructor)
+            registerBuiltin("WeakRef", ofType: .jsWeakRefConstructor)
+            registerBuiltin("FinalizationRegistry", ofType: .jsFinalizationRegistryConstructor)
+            registerBuiltin("Reflect", ofType: .jsReflectObject)
+            registerBuiltin("Temporal", ofType: .jsTemporalObject)
+            registerBuiltin("Intl", ofType: .jsIntlObject)
+            registerBuiltin("WebAssembly", ofType: ObjectGroup.jsWebAssembly.instanceType)
+        }
 
         for (builtin, type) in additionalBuiltins {
             registerBuiltin(builtin, ofType: type)
@@ -731,25 +749,53 @@ public class JavaScriptEnvironment: ComponentBase {
 
     public func registerObjectGroup(_ group: ObjectGroup) {
         assert(groups[group.name] == nil, "Registered duplicate enum \(group.name)")
-        groups[group.name] = group
-        builtinProperties.formUnion(group.properties.keys)
-        builtinMethods.formUnion(group.methods.keys)
+        var normalizedGroup = group
+        if !isES6 {
+            switch group.name {
+            case "Array":
+                let allowedMethods: Set<String> = [
+                    "every", "forEach", "map", "filter", "reduce", "reduceRight", "some",
+                    "indexOf", "lastIndexOf", "join",
+                    "pop", "push", "shift", "unshift", "splice", "slice", "concat",
+                    "sort", "reverse", "toString", "toLocaleString",
+                ]
+                normalizedGroup.methods = normalizedGroup.methods.filter { allowedMethods.contains($0.key) }
+            case "String":
+                let allowedMethods: Set<String> = [
+                    "charAt", "charCodeAt", "concat", "indexOf", "lastIndexOf",
+                    "localeCompare", "match", "replace", "search", "slice",
+                    "split", "substring", "toLowerCase", "toUpperCase", "trim",
+                ]
+                normalizedGroup.methods = normalizedGroup.methods.filter { allowedMethods.contains($0.key) }
+            case "RegExp":
+                let allowedProperties: Set<String> = [
+                    "global", "ignoreCase", "multiline", "source",
+                ]
+                normalizedGroup.properties = normalizedGroup.properties.filter { allowedProperties.contains($0.key) }
+            default:
+                break
+            }
+        }
+
+        groups[normalizedGroup.name] = normalizedGroup
+        builtinProperties.formUnion(normalizedGroup.properties.keys)
+        builtinMethods.formUnion(normalizedGroup.methods.keys)
 
         //func register
         // Step 1: Initialize `subtypes`
         //
-        subtypes[group.instanceType] = [group.instanceType]
-        var current = group
+        subtypes[normalizedGroup.instanceType] = [normalizedGroup.instanceType]
+        var current = normalizedGroup
         while let parent = current.parent {
             // Parent groups are supposed to be defined before child groups
             current = groups[parent]!
-            subtypes[current.instanceType]! += [group.instanceType]
+            subtypes[current.instanceType]! += [normalizedGroup.instanceType]
         }
 
         //
         // Step 2: Initialize `producingMethods`
         //
-        for overloads in group.methods {
+        for overloads in normalizedGroup.methods {
             for method in overloads.value {
                 assert(method.outputType != .nothing,
                   "Method \(overloads.key) in group \(group.name) has .nothing as outputType")
@@ -757,12 +803,12 @@ public class JavaScriptEnvironment: ComponentBase {
                     continue
                 }
                 let type = method.outputType
-                addProducingMethod(forType: type, by: overloads.key, on: group.name)
+                addProducingMethod(forType: type, by: overloads.key, on: normalizedGroup.name)
                 if let groupName = type.group {
                     if var current = groups[groupName] {
                         while let parent = current.parent {
                             current = groups[parent]!
-                            addProducingMethod(forType: current.instanceType, by: overloads.key, on: group.name)
+                            addProducingMethod(forType: current.instanceType, by: overloads.key, on: normalizedGroup.name)
                         }
                     }
                 }
@@ -772,8 +818,8 @@ public class JavaScriptEnvironment: ComponentBase {
         //
         // Step 3: Initialize `producingProperties`
         //
-        for property in group.properties {
-            let producedType = addProducingProperty(forType: property.value, by: property.key, on: group.name)
+        for property in normalizedGroup.properties {
+            let producedType = addProducingProperty(forType: property.value, by: property.key, on: normalizedGroup.name)
             if let groupName = producedType.group {
                 if var current = groups[groupName] {
                     while let parent = current.parent {

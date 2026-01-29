@@ -128,6 +128,7 @@ let duktapeProfile = Profile(
         "BigIntMathGenerator",
 
         // Typed arrays / buffers / SAB / Atomics / Intl / Temporal
+        "TypedArrayGenerator",
         "TypedArrayFromBufferGenerator",
         "TypedArrayLastIndexGenerator",
         "DataViewFromBufferGenerator",
@@ -162,14 +163,15 @@ let duktapeProfile = Profile(
 
     disabledMutators: [],
 
+    //commented out builtins do not exist. do not uncomment
     additionalBuiltins: [
-        "CBOR.encode"               :  .function([.jsAnything] => .object()),
-        "CBOR.decode"               :  .function([.object()] => .object()),
+        // "CBOR.encode"               :  .function([.jsAnything] => .object()),
+        // "CBOR.decode"               :  .function([.object()] => .object()),
         "Duktape.fin"               :  .function([.object(), .opt(.function())] => .undefined),
         "Duktape.act"               :  .function([.number] => .object()),
         "Duktape.gc"                :  .function([] => .undefined),
         "Duktape.compact"           :  .function([.object()] => .undefined),
-        "placeholder"               :  .function([] => .undefined),
+        //"placeholder"               :  .function([] => .undefined),
 
     ],
 

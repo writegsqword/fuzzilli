@@ -216,9 +216,11 @@ public let CodeGenerators: [CodeGenerator] = [
 
     CodeGenerator("BuiltinObjectInstanceGenerator", produces: [.object()]) {
         b in
-        let builtin = chooseUniform(from: [
+        let candidates = [
             "Array", "Map", "WeakMap", "Set", "WeakSet", "Date",
-        ])
+        ]
+        let available = candidates.filter { b.fuzzer.environment.hasBuiltin($0) }
+        guard let builtin = available.randomElement() else { return }
         let constructor = b.createNamedVariable(forBuiltin: builtin)
         if builtin == "Array" {
             let size = b.loadInt(b.randomSize(upTo: 0x1000))
@@ -231,15 +233,16 @@ public let CodeGenerators: [CodeGenerator] = [
 
     CodeGenerator("BuiltinObjectPrototypeCallGenerator") { b in
         // TODO: It would be nice to type more prototypes and extend this list.
-        let builtinName = chooseUniform(from: [
-            "Promise", "Date", "Array", "ArrayBuffer", "SharedArrayBuffer", "String"])
+        let candidates = [
+            "Promise", "Date", "Array", "ArrayBuffer", "SharedArrayBuffer", "String",
+        ]
+        let available = candidates.filter { b.fuzzer.environment.hasBuiltin($0) }
+        guard let builtinName = available.randomElement() else { return }
         let builtin = b.createNamedVariable(forBuiltin: builtinName)
         let prototype = b.getProperty("prototype", of: builtin)
         let prototypeType = b.type(of: prototype)
         let choiceCount = prototypeType.numProperties + prototypeType.numMethods
-        guard choiceCount != 0 else {
-            fatalError("\(builtinName).prototype has no known properties or methods (type: \(prototypeType))")
-        }
+        guard choiceCount != 0 else { return }
         let useProperty = Int.random(in: 0..<choiceCount) < prototypeType.numProperties
         let fctName = (useProperty ? prototypeType.properties : prototypeType.methods).randomElement()!
         let fct = b.getProperty(fctName, of: prototype)
